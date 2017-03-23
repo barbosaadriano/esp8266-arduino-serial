@@ -2,8 +2,11 @@
 SoftwareSerial esp8266(9, 8); // RX, TX
 boolean conectado;
 long int tempoA;
+#define porta2  2
 void setup()  
 {
+  pinMode(2,OUTPUT);
+  digitalWrite(porta2,LOW);
   Serial.begin(9600);
   esp8266.begin(9600);  
   conectado = false;
@@ -53,8 +56,39 @@ void loop() // run over and over
     verificarAcao();
   }
 }
+
+void callAction(String acao) {
+
+  if ( acao == "L2"  ) 
+  {
+      //ligar a porta 2
+      digitalWrite(porta2,HIGH);
+      Serial.println("Ligando porta 2");
+  } else 
+  if ( acao == "D2" ) 
+  {
+      //desligar a porta 2
+      digitalWrite(porta2,LOW);      
+      Serial.println("Desligando porta 2");
+  } else 
+  if ( acao == "S2" ) 
+  {
+      //Status da porta 2
+  } else 
+  if (acao == "GT" )
+  {
+      //get temperatura
+  } else 
+  if ( acao == "GU" )
+  {
+      //get umidade
+  } else {
+      // fazer nada
+  } 
+}
+
 void verificarAcao(){
-  char *requisicao = "GET /esp/index.php?t=123&h=123 HTTP/1.1\r\nHost: 192.168.0.101:80\r\n\r\n";
+  char *requisicao = "GET /avws/interface-controller/request-actions/ HTTP/1.1\r\nHost: 192.168.0.101:80\r\n\r\n";
   String resposta = "";
   String cmdResp = serialSend("AT+CIPSTART=\"TCP\",\"192.168.0.101\",80\r\n", 1000);
   if (cmdResp.indexOf("OK")) {
@@ -66,6 +100,11 @@ void verificarAcao(){
     serialSend("\r\n",20);
     resposta = serialSend(requisicao,5000);
     serialSend("AT+CIPCLOSE\r\n",1000);
+  }
+  if (resposta.indexOf("act\":")>-1) {
+     int idx = resposta.indexOf("act\":");
+     String acao = resposta.substring((idx+6),(idx+8));
+    callAction(acao); 
   }
   Serial.println(resposta);
 }
