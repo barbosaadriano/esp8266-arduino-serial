@@ -1,8 +1,13 @@
 #include <SoftwareSerial.h>
+//#include <DHT.h>
 SoftwareSerial esp8266(9, 8); // RX, TX
 boolean conectado;
 long int tempoA;
 #define porta2  2
+//#define DHTPIN 7
+//#define DHTTYPE DHT22  
+//DHT dht(DHTPIN, DHTTYPE);
+
 void setup()  
 {
   pinMode(2,OUTPUT);
@@ -61,27 +66,42 @@ void callAction(String acao) {
 
   if ( acao == "L2"  ) 
   {
-      //ligar a porta 2
-      digitalWrite(porta2,HIGH);
-      Serial.println("Ligando porta 2");
+     if (digitalRead(2)==LOW)
+     {
+        //ligar a porta 2
+        digitalWrite(porta2,HIGH);
+        Serial.println("Ligando porta 2");
+     }
   } else 
   if ( acao == "D2" ) 
   {
-      //desligar a porta 2
-      digitalWrite(porta2,LOW);      
-      Serial.println("Desligando porta 2");
+      if (digitalRead(2)==HIGH)
+      {
+        //desligar a porta 2
+        digitalWrite(porta2,LOW);      
+        Serial.println("Desligando porta 2");
+      }
   } else 
   if ( acao == "S2" ) 
   {
       //Status da porta 2
+      if (digitalRead(2)==HIGH) {
+        //ligado
+        Serial.println("Ligado");
+      } else {
+        //desligado 
+        Serial.println("Desligado");
+      }
   } else 
   if (acao == "GT" )
   {
       //get temperatura
+      Serial.println(getTemperatura());
   } else 
   if ( acao == "GU" )
   {
       //get umidade
+      Serial.println(getUmidade());
   } else {
       // fazer nada
   } 
@@ -133,3 +153,19 @@ String serialSend(String cmd, const int timeout)
   return response;
 }
 
+float getUmidade(){
+//   float h = dht.readHumidity();
+ // if (isnan(h))
+  //{
+    return -1.0;
+ // }
+  //return h;
+}
+float getTemperatura(){
+  //float t = dht.readTemperature();
+  //if (isnan(t))
+ // {
+    return 0.0;
+ // }
+ // return t;
+}
