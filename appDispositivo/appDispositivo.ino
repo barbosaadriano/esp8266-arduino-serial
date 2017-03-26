@@ -31,7 +31,7 @@ void setup()
 String getEspStatus(){
   String result = serialSend("AT+CIPSTATUS\r\n",3000);
   if (result.indexOf("STATUS:2")>-1)
-    return "Aguardando";  
+    return "Ip Obtido";  
   if (result.indexOf("STATUS:3")>-1)
     return "Conectado";
   if (result.indexOf("STATUS:4")>-1)
@@ -93,13 +93,14 @@ void callAction(String acao) {
   } else 
   if (acao == "GT" )
   {
-    delay(10000);
-      //get temperatura
+    delay(2000);
     registerEvent("READED_TEMPERATURE",(String)getTemperatura());
+    Serial.println(getTemperatura());
   } else 
   if ( acao == "GU" )
   {
       //get umidade
+      registerEvent("READED_UMIDADE",(String)getUmidade());
       Serial.println(getUmidade());
   } else {
       // fazer nada
@@ -132,20 +133,15 @@ void verificarAcao(){
   }
 }
 void registerEvent(String eventName,String value){
-  int nlen = eventName.length();
-  nlen+=value.length();
-  nlen+=15;
-  String req = "POST /avws/interface-controller/register-event/ HTTP/1.1\r\nHost: 192.168.0.101:80\r\n";
-  req.concat("Content-Type: application/x-www-form-urlencoded\r\n");
-  req.concat("Content-Length: ");
-  req.concat((String)nlen);
-  req.concat("\r\nCache-Control: no-cache\r\n\r\n");
-  req.concat("ID=5cFe&EN=");
+  String req = "";
+  req.concat("GET /avws/interface-controller/register-event/");
+  req.concat("?ID=5cfe&EN=");
   req.concat(eventName);
   req.concat("&VL=");
   req.concat(value);
-  req.concat("\r\n");
+  req.concat(" HTTP/1.1\r\nHost: 192.168.0.101:80\r\n\r\n");
   String ret = "";
+  Serial.println(req);
   String cmdResp = serialSend("AT+CIPSTART=\"TCP\",\"192.168.0.101\",80\r\n", 1000);
   if (cmdResp.indexOf("OK")) {
     serialSend("AT+CIPSEND=",20);  
@@ -160,8 +156,6 @@ void registerEvent(String eventName,String value){
 }
 String serialSend(String cmd, const int timeout)
 {
-  uint8_t buffer[255] = {0};
-  int i = 0;
   String response = "";
   esp8266.print(cmd);
   long int time = millis();
@@ -169,16 +163,16 @@ String serialSend(String cmd, const int timeout)
   {
     while (esp8266.available())
     {
-        buffer[i] = esp8266.read();
-        i++;
+         delay(10);
+  //  if (esp8266.find("+IPD,")) //se houver um novo comando
+  //  {
+      response = esp8266.readStringUntil('\0'); //ler a mensagem
+  //    }
+   
     }
   }
-  for (int i =0; i < 255 ; i++) {    
-    if (buffer[i]=='\0') {
-      return response; 
-    }
-    response += (char)buffer[i];
-  }
+  //Serial.println(cmd);
+  Serial.println(response);
   return response;
 }
 
